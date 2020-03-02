@@ -1,0 +1,124 @@
+---
+title: "Creating Dumbbell Charts with ggcharts"
+author: "Thomas Neitmann"
+output: xaringan::moon_reader
+---
+<style>
+.remark-slide-number {
+  display: none;
+}
+</style>
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(dpi = 300, fig.ext = "svg", dev = "svglite")
+```
+
+## Dumbbell Charts with ggcharts
+
+```{r dumbbell_chart, echo=FALSE, message=FALSE, fig.height=4.5}
+library(ggcharts)
+library(dplyr)
+library(gapminder)
+data(gapminder)
+
+gapminder %>%
+  dplyr::mutate(pop = pop / 1e6) %>%
+  dplyr::filter(year %in% c(1952, 2007)) %>%
+  tidyr::pivot_wider(
+    id_cols = country,
+    names_from = year,
+    values_from = pop,
+    names_prefix = "pop_"
+  ) %>%
+  dumbbell_chart(country, pop_1952, pop_2007, limit = 10,
+                 point_colors = c("lightgray", "black"),
+                 legend_labels = c("1952", "2007")) +
+  scale_y_continuous(expand = expand_scale(mult = .025)) +
+  theme(
+    text = element_text(size = 14),
+    plot.caption = element_text(family = "mono")
+  ) +
+  labs(
+    title = "The World is Growing",
+    subtitle = "Top 10 Most Populated Countries in 2007",
+    caption = "Chart created using #ggcharts"
+  ) +
+  xlab(NULL) +
+  ylab("Population (Millions)")
+```
+
+---
+
+## Data Preparation
+
+For this demo I will use the `gapminder` dataset which contains countries' population counts from 1952 to 2017. This dataset is in long format. In order for `dumbbell_chart()` to work properly the data has to be in *wide* format.
+
+```{r transpose_data}
+gapminder_wide <- gapminder::gapminder %>%
+  dplyr::mutate(pop = pop / 1e6) %>%
+  dplyr::filter(year %in% c(1952, 2007)) %>%
+  tidyr::pivot_wider(
+    id_cols = country,
+    names_from = year,
+    values_from = pop,
+    names_prefix = "pop_"
+  )
+```
+
+---
+
+## Data Preparation (cont'd)
+
+```{r preview_data}
+head(gapminder_wide, 10)
+```
+
+---
+
+## A Simple Chart
+
+```{r simple_chart, fig.height=3.75}
+library(ggcharts)
+dumbbell_chart(gapminder_wide, country, pop_1952, pop_2007,
+               limit = 10)
+```
+
+---
+
+## Customize
+
+```{r customize1, fig.height=3.5}
+chart <- dumbbell_chart(gapminder_wide, country, pop_1952, pop_2007,
+                        limit = 10, point_size = 5,
+                        point_colors = c("lightgray", "black"),
+                        legend_labels = c("1952", "2007"))
+chart
+```
+
+---
+
+## Customize (cont'd)
+
+```{r customize2}
+chart <- chart +
+  scale_y_continuous(expand = expand_scale(mult = .025)) +
+  theme(
+    text = element_text(size = 14),
+    plot.caption = element_text(family = "mono")
+  ) +
+  labs(
+    title = "The World is Growing",
+    subtitle = "Top 10 Most Populated Countries in 2007",
+    caption = "Chart created using #ggcharts"
+  ) +
+  xlab(NULL) +
+  ylab("Population (Millions)")
+```
+
+---
+
+## Final Result
+
+```{r final, fig.height=4.25}
+chart
+```
